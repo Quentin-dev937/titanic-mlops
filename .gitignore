@@ -1,1 +1,8 @@
-/data/raw/titanic.csv
+data/raw/*csv
+models/
+
+.venv/
+.env/
+
+__pycache__/
+*.pyc
