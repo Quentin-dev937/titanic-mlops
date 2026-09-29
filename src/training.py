@@ -11,12 +11,38 @@ from sklearn.linear_model import LogisticRegression
 from pathlib import Path
 import joblib
 
+import mlflow
+import boto3
+import os
+from dotenv import load_dotenv
+
+load_dotenv("./.mlflow_env")
+
+mflow_url = os.getenv("MLFLOW_URL")
+
 
 DATA_RAW_PATH = Path(r"data/raw/titanic.csv")
 MODELS_PATH = Path(r"models")
 TARGET_COL = "Survived"
 
+
+def get_or_create_exp(name="titanic-training", artifact_location=mflow_url):
+    experiment = mlflow.get_experiment_by_name(name)
+    if experiment.experiment_id is not None:
+        return experiment.experiment_id
+    return mlflow.create_experiment(name, artifact_location=mflow_url)
+
+
+
 def train():
+
+
+
+    remote_server_uri = "sqlite:///mlflow.db" # local for the moment
+    mlflow.set_tracking_uri(remote_server_uri)
+
+    experiment_id = get_or_create_exp(name="titanic-training", artifact_location=mflow_url)
+
 
     print("Training", flush=True)
 
@@ -38,16 +64,26 @@ def train():
 
     X_train, X_validation, y_train, y_validation = train_test_split(X, y, test_size=0.2, random_state=42)
 
-    pipeline.fit(X_train, y_train)
-    print("Model trained", flush=True)
+    with mlflow.start_run(experiment_id=experiment_id):
+        mlflow.log_param("model", "LogisticRegressgion")
+        mlflow.log_param("test_size", 0.2)
+        mlflow.log_param("random_state", 42)
 
-    y_validation_pred = pipeline.predict(X_validation)
-    print("Predictions completed", flush=True)
+        pipeline.fit(X_train, y_train)
+        print("Model trained", flush=True)
 
-    score = round(pipeline.score(X_validation, y_validation), 2)
-    print(f"Score: {score}", flush=True)
+        y_validation_pred = pipeline.predict(X_validation)
+        print("Predictions completed", flush=True)
 
-    joblib.dump(pipeline, MODELS_PATH / "titanic-model.joblib")
+        score = round(pipeline.score(X_validation, y_validation), 2)
+        print(f"Score: {score}", flush=True)
+
+        mlflow.log_metric("validation_accuracy", score)
+
+        mlflow.sklearn.log_model(sk_model=pipeline, name="model")
+
+
+        joblib.dump(pipeline, MODELS_PATH / "titanic-model.joblib")
 
     
 

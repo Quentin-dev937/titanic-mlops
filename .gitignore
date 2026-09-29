@@ -1,8 +1,11 @@
 data/raw/*csv
 models/
+mlflow.db
+mlruns/
 
 .venv/
 .env/
+.mlflow_env
 
 __pycache__/
 *.pyc

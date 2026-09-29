@@ -5,3 +5,5 @@ pytest
 uvicorn
 pydantic
 fastapi
+mlflow
+boto3
