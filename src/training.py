@@ -38,7 +38,8 @@ def train():
 
 
 
-    remote_server_uri = "sqlite:///mlflow.db" # local for the moment
+    #remote_server_uri = "sqlite:///mlflow.db" # local for the moment
+    remote_server_uri = "http://127.0.0.1:5000"
     mlflow.set_tracking_uri(remote_server_uri)
 
     experiment_id = get_or_create_exp(name="titanic-training", artifact_location=mflow_url)
