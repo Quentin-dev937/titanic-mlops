@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 import joblib
@@ -7,12 +8,14 @@ from pydantic import BaseModel
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
-MODEL_PATH = PROJECT_ROOT / "models" / "titanic-model.joblib"
+MODEL_PATH = Path(os.getenv("MODEL_PATH",
+                            PROJECT_ROOT / "models" / "titanic-model.joblib"))
+
+model = joblib.load(MODEL_PATH)
 
 app = FastAPI(title="titanic predictions API", version="1.0.0")
 
 
-#model = joblib.load(MODEL_PATH)
 
 class Passenger(BaseModel):
     Pclass: int
