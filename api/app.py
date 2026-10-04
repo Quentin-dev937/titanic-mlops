@@ -12,7 +12,7 @@ MODEL_PATH = PROJECT_ROOT / "models" / "titanic-model.joblib"
 app = FastAPI(title="titanic predictions API", version="1.0.0")
 
 
-model = joblib.load(MODEL_PATH)
+#model = joblib.load(MODEL_PATH)
 
 class Passenger(BaseModel):
     Pclass: int
