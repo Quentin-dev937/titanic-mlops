@@ -3,7 +3,7 @@ name: CI - titanic-mlops
 on:
   push:
     branches: ["main", "dev"]
-  pul_request: 
+  pull_request: 
     branches: ["main", "dev"]
 
 jobs:
