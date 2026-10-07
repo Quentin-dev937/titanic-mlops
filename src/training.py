@@ -13,6 +13,9 @@ import joblib
 
 import mlflow
 import boto3
+import psycopg2
+import shap
+import matplotlib
 import os
 from dotenv import load_dotenv
 
@@ -25,18 +28,18 @@ DATA_RAW_PATH = Path(r"data/raw/titanic.csv")
 MODELS_PATH = Path(r"models")
 TARGET_COL = "Survived"
 
+THRESHOLD = 0.80
+
 
 def get_or_create_exp(name="titanic-training", artifact_location=mflow_url):
     experiment = mlflow.get_experiment_by_name(name)
-    if experiment.experiment_id is not None:
+    if experiment is not None:
         return experiment.experiment_id
     return mlflow.create_experiment(name, artifact_location=mflow_url)
 
 
 
 def train():
-
-
 
     #remote_server_uri = "sqlite:///mlflow.db" # local for the moment
     remote_server_uri = "http://127.0.0.1:5000"
@@ -61,30 +64,42 @@ def train():
                                                  (cat_pipeline, make_column_selector(dtype_include=object)))
 
     
-    pipeline = make_pipeline(columns_transformer, LogisticRegression())
+    pipeline = make_pipeline(columns_transformer, LogisticRegression(random_state=42, C=1000))
 
     X_train, X_validation, y_train, y_validation = train_test_split(X, y, test_size=0.2, random_state=42)
 
+
     with mlflow.start_run(experiment_id=experiment_id):
-        mlflow.log_param("model", "LogisticRegressgion")
-        mlflow.log_param("test_size", 0.2)
-        mlflow.log_param("random_state", 42)
+        #mlflow.log_param("model", "LogisticRegressgion")
+        #mlflow.log_param("test_size", 0.2)
+        #mlflow.log_param("random_state", 42)
+
+        mlflow.log_params(pipeline.get_params())
 
         pipeline.fit(X_train, y_train)
         print("Model trained", flush=True)
 
+        train_score = round(pipeline.score(X_train, y_train), 2)
+        print(f"train_accuracy: {train_score}", flush=True)
+        mlflow.log_metric("train_accuracy", train_score)
+
         y_validation_pred = pipeline.predict(X_validation)
         print("Predictions completed", flush=True)
 
-        score = round(pipeline.score(X_validation, y_validation), 2)
-        print(f"Score: {score}", flush=True)
+        eval_dataset = pd.DataFrame({"target": y_validation,
+        "prediction": y_validation_pred})
+        eval_dataset.name = "validation-data"
 
-        mlflow.log_metric("validation_accuracy", score)
+        
+        results = mlflow.models.evaluate( data=eval_dataset,  model_type="classifier", predictions="prediction", targets="target")
 
-        mlflow.sklearn.log_model(sk_model=pipeline, name="model")
+        print(f"Accuracy: {results.metrics['accuracy_score']:.2f}", flush=True)
+
+        if results.metrics['accuracy_score'] > THRESHOLD:
+            mlflow.sklearn.log_model(sk_model=pipeline, name="model", registered_model_name="TitanicModel")
 
 
-        joblib.dump(pipeline, MODELS_PATH / "titanic-model.joblib")
+        #joblib.dump(pipeline, MODELS_PATH / "titanic-model.joblib")
 
     
 

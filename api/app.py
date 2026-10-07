@@ -13,8 +13,8 @@ MODEL_PATH = Path(os.getenv("MODEL_PATH",
 
 model = joblib.load(MODEL_PATH)
 
-app = FastAPI(title="titanic predictions API", version="1.0.0")
 
+app = FastAPI(title="titanic predictions API", version="1.0.0")
 
 
 class Passenger(BaseModel):
