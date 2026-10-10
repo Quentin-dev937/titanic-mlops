@@ -6,7 +6,6 @@ uvicorn
 pydantic
 fastapi
 httpx2
-mlflow
 boto3
 psycopg2-binary
 

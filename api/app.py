@@ -6,13 +6,15 @@ import pandas as pd
 from fastapi import FastAPI
 from pydantic import BaseModel
 
+
+from dotenv import load_dotenv
+
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
-MODEL_PATH = Path(os.getenv("MODEL_PATH",
-                            PROJECT_ROOT / "models" / "titanic-model.joblib"))
+MODEL_PATH = Path(PROJECT_ROOT / "models" / "titanic-model.joblib")
 
 model = joblib.load(MODEL_PATH)
-
 
 app = FastAPI(title="titanic predictions API", version="1.0.0")
 
