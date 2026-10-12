@@ -8,4 +8,4 @@ fastapi
 httpx2
 boto3
 psycopg2-binary
-
+evidently
