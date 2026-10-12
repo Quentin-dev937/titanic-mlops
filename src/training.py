@@ -19,9 +19,10 @@ import matplotlib
 import os
 from dotenv import load_dotenv
 
+from processing import load_data, split_X_y
 
 
-DATA_RAW_PATH = Path(r"data/raw/titanic.csv")
+#DATA_RAW_PATH = Path(r"data/raw/titanic.csv")
 MODELS_PATH = Path(r"models")
 TARGET_COL = "Survived"
 
@@ -34,12 +35,9 @@ def train():
 
     print("Training", flush=True)
 
-    data = pd.read_csv(DATA_RAW_PATH)
 
-    data_processed = data.drop(columns=["Name", "PassengerId", "Cabin", "Ticket"])
-
-    X = data_processed.drop(columns=[TARGET_COL])
-    y = data_processed[TARGET_COL]
+    data = load_data()
+    X, y = split_X_y(dataframe=data)
 
     num_pipeline = make_pipeline(SimpleImputer(strategy="mean"), StandardScaler())
     cat_pipeline = make_pipeline(SimpleImputer(strategy="most_frequent"), OneHotEncoder(handle_unknown="ignore"))
